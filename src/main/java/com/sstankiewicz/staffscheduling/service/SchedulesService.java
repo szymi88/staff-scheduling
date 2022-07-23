@@ -7,7 +7,8 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Service
-public class ScheduleService {
+public class SchedulesService {
+    //TODO
     public boolean deleteSchedule(Long userId, Long scheduleId) {
         return false;
     }

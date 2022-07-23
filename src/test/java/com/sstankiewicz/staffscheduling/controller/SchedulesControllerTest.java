@@ -1,7 +1,7 @@
 package com.sstankiewicz.staffscheduling.controller;
 
 import com.sstankiewicz.staffscheduling.controller.model.Schedule;
-import com.sstankiewicz.staffscheduling.service.ScheduleService;
+import com.sstankiewicz.staffscheduling.service.SchedulesService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -18,17 +18,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest
-class ScheduleControllerTest {
+class SchedulesControllerTest {
 
     @Autowired
     private MockMvc mvc;
 
     @MockBean
-    private ScheduleService scheduleService;
+    private SchedulesService schedulesService;
 
     @Test
     void getSchedules_returnsResult() throws Exception {
-        when(scheduleService.getSchedules(1L, LocalDate.of(2020, 1, 1), LocalDate.of(2020, 1, 2)))
+        when(schedulesService.getSchedules(1L, LocalDate.of(2020, 1, 1), LocalDate.of(2020, 1, 2)))
                 .thenReturn(List.of(Schedule.builder()
                                             .userId(1L)
                                             .scheduleId(2L)
@@ -55,7 +55,7 @@ class ScheduleControllerTest {
 
     @Test
     void getSchedules_noSchedulesFound_returnsEmptyList() throws Exception {
-        when(scheduleService.getSchedules(1L, LocalDate.of(2020, 1, 1), LocalDate.of(2020, 1, 2)))
+        when(schedulesService.getSchedules(1L, LocalDate.of(2020, 1, 1), LocalDate.of(2020, 1, 2)))
                 .thenReturn(List.of());
 
         mvc.perform(get("/users/1/schedules?from=2020-01-01&to=2020-01-02"))
@@ -66,8 +66,8 @@ class ScheduleControllerTest {
 
     @Test
     void getSchedules_userDoesNotExist_return404() throws Exception {
-        when(scheduleService.getSchedules(1L, LocalDate.of(2020, 1, 1), LocalDate.of(2020, 1, 2)))
-                .thenThrow(new ScheduleService.UserNotFoundException("User doesn't exist"));
+        when(schedulesService.getSchedules(1L, LocalDate.of(2020, 1, 1), LocalDate.of(2020, 1, 2)))
+                .thenThrow(new SchedulesService.UserNotFoundException("User doesn't exist"));
 
         mvc.perform(get("/users/1/schedules?from=2020-01-01&to=2020-01-02"))
                 .andExpect(status().isNotFound());
@@ -81,7 +81,7 @@ class ScheduleControllerTest {
 
     @Test
     void createSchedule_createsSchedule_returnsCreatedResourceWithId_respondsWith201() throws Exception {
-        when(scheduleService.createSchedule(1L, Schedule.builder()
+        when(schedulesService.createSchedule(1L, Schedule.builder()
                 .userName("UserName")
                 .workDate(LocalDate.of(2020, 1, 1))
                 .shiftLength(5)
@@ -132,8 +132,8 @@ class ScheduleControllerTest {
 
     @Test
     void createSchedule_userDoesNotExist_return404() throws Exception {
-        when(scheduleService.createSchedule(eq(1L), any()))
-                .thenThrow(new ScheduleService.UserNotFoundException("User doesn't exist"));
+        when(schedulesService.createSchedule(eq(1L), any()))
+                .thenThrow(new SchedulesService.UserNotFoundException("User doesn't exist"));
 
         mvc.perform(post("/users/1/schedules")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -149,7 +149,7 @@ class ScheduleControllerTest {
 
     @Test
     void updateSchedule_updateResource_respondsWith200() throws Exception {
-        when(scheduleService.updateSchedule(Schedule.builder()
+        when(schedulesService.updateSchedule(Schedule.builder()
                                                     .userId(1L)
                                                     .scheduleId(2L)
                                                     .userName("UserName")
@@ -192,14 +192,14 @@ class ScheduleControllerTest {
 
     @Test
     void updateSchedule_userDoesNotExist_respondWith404() throws Exception {
-        when(scheduleService.updateSchedule(Schedule.builder()
+        when(schedulesService.updateSchedule(Schedule.builder()
                                                     .userId(1L)
                                                     .scheduleId(2L)
                                                     .userName("UserName")
                                                     .workDate(LocalDate.of(2020, 1, 1))
                                                     .shiftLength(5)
                                                     .build()))
-                .thenThrow(new ScheduleService.UserNotFoundException("User doesn't exist"));
+                .thenThrow(new SchedulesService.UserNotFoundException("User doesn't exist"));
 
         mvc.perform(put("/users/1/schedules/2")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -231,22 +231,22 @@ class ScheduleControllerTest {
 
     @Test
     void deleteSchedules_deleteExisting_returns204() throws Exception {
-        when(scheduleService.deleteSchedule(1L, 2L)).thenReturn(true);
+        when(schedulesService.deleteSchedule(1L, 2L)).thenReturn(true);
 
         mvc.perform(delete("/users/1/schedules/2"))
                 .andExpect(status().isNoContent());
 
-        verify(scheduleService, times(1)).deleteSchedule(1L, 2L);
+        verify(schedulesService, times(1)).deleteSchedule(1L, 2L);
     }
 
     @Test
     void deleteSchedules_notExisting_return404() throws Exception {
-        when(scheduleService.deleteSchedule(1L, 2L)).thenReturn(false);
+        when(schedulesService.deleteSchedule(1L, 2L)).thenReturn(false);
 
         mvc.perform(delete("/users/1/schedules/2"))
                 .andExpect(status().isNotFound());
 
-        verify(scheduleService, times(1)).deleteSchedule(1L, 2L);
+        verify(schedulesService, times(1)).deleteSchedule(1L, 2L);
     }
 
     /*
