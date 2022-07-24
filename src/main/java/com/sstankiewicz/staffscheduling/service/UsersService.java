@@ -28,7 +28,7 @@ public class UsersService  {
         }
 
         userRepository.save(UserEntity.builder()
-                                    .name(user.getUserId())
+                                    .name(user.getUserName())
                                     .password(user.getPassword())
                                     .role(WebSecurityConfig.Role.USER)
                                     .build());

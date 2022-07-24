@@ -12,9 +12,8 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Schedule {
-    Long scheduleId;
-    String userId;
-    String userName;
-    LocalDate workDate;
-    int shiftLength;
+    private Long scheduleId;
+    private String userName;
+    private LocalDate workDate;
+    private int shiftLength;
 }

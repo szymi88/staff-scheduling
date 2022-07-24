@@ -2,7 +2,6 @@ package com.sstankiewicz.staffscheduling.controller;
 
 import com.sstankiewicz.staffscheduling.controller.model.User;
 import com.sstankiewicz.staffscheduling.service.UsersService;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -43,13 +42,13 @@ class UsersControllerTest {
 
     @Test
     void updateUser_expect200() throws Exception {
-        doNothing().when(usersService).updateUser(User.builder().userId("user1").password("123").build());
+        doNothing().when(usersService).updateUser(User.builder().userName("user1").password("123").build());
 
         mvc.perform(put("/users/user1")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("""
                                      {
-                                        "userId": "user1",
+                                        "userName": "user1",
                                         "password": "123"
                                      }
                                      """))

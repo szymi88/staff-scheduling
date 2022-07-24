@@ -17,17 +17,17 @@ public class UsersController {
         this.usersService = usersService;
     }
 
-    @PutMapping(value = "/{userId}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    void updateUser(@PathVariable String userId, @RequestBody User user) {
-        if (userId == null || !userId.equals(user.getUserId())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Incorrect userId in the body");
+    @PutMapping(value = "/{userName}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    void updateUser(@PathVariable String userName, @RequestBody User user) {
+        if (userName == null || !userName.equals(user.getUserName())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Incorrect userName in the body");
         }
         usersService.updateUser(user);
     }
 
-    @DeleteMapping("/{userId}")
+    @DeleteMapping("/{userName}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    void deleteUser(@PathVariable String userId) {
-        usersService.deleteUser(userId);
+    void deleteUser(@PathVariable String userName) {
+        usersService.deleteUser(userName);
     }
 }

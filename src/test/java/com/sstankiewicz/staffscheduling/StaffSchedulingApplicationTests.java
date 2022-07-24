@@ -8,7 +8,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 @Tag("integration")
 class StaffSchedulingApplicationTests {
     @Test
-    @Tag("integration")
     void contextLoads() {
     }
 

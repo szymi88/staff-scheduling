@@ -30,7 +30,7 @@ class UsersServiceTest {
         when(repository.save(UserEntity.builder().name("user1").password("123").role(WebSecurityConfig.Role.USER).build()))
                      .thenAnswer(invocation -> invocation.getArgument(0));
 
-        new UsersService(repository).updateUser(User.builder().userId("user1").password("123").build());
+        new UsersService(repository).updateUser(User.builder().userName("user1").password("123").build());
 
         verify(repository, times(1)).save(any());
     }
