@@ -1,6 +1,7 @@
 plugins {
     id 'org.springframework.boot' version '2.7.2'
     id 'io.spring.dependency-management' version '1.0.12.RELEASE'
+    id 'com.avast.gradle.docker-compose' version '0.16.4'
     id 'java'
 }
 
@@ -18,15 +19,38 @@ repositories {
     mavenCentral()
 }
 
+task unitTest(type: Test) {
+    useJUnitPlatform {
+        excludeTags 'integration'
+    }
+    group = 'verification'
+}
+
+task integrationTest(type: Test) {
+    useJUnitPlatform {
+        includeTags 'integration'
+    }
+    group = 'verification'
+    shouldRunAfter test
+}
+
+dockerCompose {
+    useComposeFiles = ['./src/main/docker/docker-compose.yml']
+    isRequiredBy(bootRun)
+    isRequiredBy(integrationTest)
+}
+
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    //implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-security'
+
     compileOnly 'org.projectlombok:lombok'
-    //runtimeOnly 'mysql:mysql-connector-java'
+    runtimeOnly 'mysql:mysql-connector-java'
+
     annotationProcessor 'org.projectlombok:lombok'
 
-
+    testRuntimeOnly 'mysql:mysql-connector-java'
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'

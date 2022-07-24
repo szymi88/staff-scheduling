@@ -11,15 +11,17 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class WebSecurityConfig {
 
-	public static final String ADMIN_ROLE = "ADMIN";
-	public static final String USER_ROLE = "USER";
+	public enum Role {
+		ADMIN,
+		USER
+	}
 
 	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 		http
 				.authorizeRequests()
-				.antMatchers(HttpMethod.GET, "/users/*/schedules").hasAnyRole(ADMIN_ROLE, USER_ROLE)
-				.antMatchers("/**").hasRole(ADMIN_ROLE)
+				.antMatchers(HttpMethod.GET, "/users/*/schedules").hasAnyRole(Role.ADMIN.name(), Role.USER.name())
+				.antMatchers("/**").hasRole(Role.ADMIN.name())
 				.and().csrf().disable()
 				.httpBasic();
 		return http.build();

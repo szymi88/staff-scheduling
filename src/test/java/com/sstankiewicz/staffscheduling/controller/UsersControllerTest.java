@@ -2,6 +2,7 @@ package com.sstankiewicz.staffscheduling.controller;
 
 import com.sstankiewicz.staffscheduling.controller.model.User;
 import com.sstankiewicz.staffscheduling.service.UsersService;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -20,6 +21,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(UsersController.class)
+
 class UsersControllerTest {
 
     @TestConfiguration
@@ -41,9 +43,7 @@ class UsersControllerTest {
 
     @Test
     void updateUser_expect200() throws Exception {
-        var testUser = User.builder().userId("user1").password("123").build();
-        when(usersService.updateUser(testUser))
-                .thenReturn(true);
+        doNothing().when(usersService).updateUser(User.builder().userId("user1").password("123").build());
 
         mvc.perform(put("/users/user1")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -55,9 +55,8 @@ class UsersControllerTest {
                                      """))
                 .andExpect(status().isOk());
 
-        verify(usersService, times(1)).updateUser(testUser);
+        verify(usersService, times(1)).updateUser(any());
     }
-
 
     @Test
     void updateUser_userIdMismatch_expect400() throws Exception {
@@ -74,11 +73,12 @@ class UsersControllerTest {
 
     @Test
     void deleteUser_expect204() throws Exception {
-        when(usersService.deleteUser("user1")).thenReturn(true);
+        doNothing().when(usersService).deleteUser("user1");
+
 
         mvc.perform(delete("/users/user1"))
                 .andExpect(status().isNoContent());
 
-        verify(usersService, times(1)).deleteUser("user1");
+        verify(usersService, times(1)).deleteUser(any());
     }
 }
