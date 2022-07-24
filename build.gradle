@@ -35,7 +35,7 @@ task integrationTest(type: Test) {
 }
 
 dockerCompose {
-    useComposeFiles = ['./src/main/docker/docker-compose.yml']
+    useComposeFiles = ['./src/main/docker/docker-compose-mysql.yml']
     isRequiredBy(bootRun)
     isRequiredBy(integrationTest)
 }
