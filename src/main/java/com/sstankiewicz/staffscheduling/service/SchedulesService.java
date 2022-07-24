@@ -9,17 +9,17 @@ import java.util.List;
 @Service
 public class SchedulesService {
     //TODO
-    public boolean deleteSchedule(Long userId, Long scheduleId) {
+    public boolean deleteSchedule(String userId, Long scheduleId) {
         return false;
     }
 
-    public List<Schedule> getSchedules(Long userId, LocalDate from, LocalDate to) {
+    public List<Schedule> getSchedules(String userId, LocalDate from, LocalDate to) {
         return null;
     }
 
-    public Schedule createSchedule(Long userId, Schedule schedule) {
+    public Schedule createSchedule(String userId, Schedule schedule) {
         return Schedule.builder()
-                .userId(1L)
+                .userId("user1")
                 .userName("UserName")
                 .workDate(LocalDate.of(2020, 1, 1))
                 .shiftLength(5)

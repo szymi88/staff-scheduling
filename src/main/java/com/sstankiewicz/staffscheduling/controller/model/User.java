@@ -5,16 +5,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
-
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class Schedule {
-    Long scheduleId;
+public class User {
     String userId;
-    String userName;
-    LocalDate workDate;
-    int shiftLength;
+    String password;
 }
