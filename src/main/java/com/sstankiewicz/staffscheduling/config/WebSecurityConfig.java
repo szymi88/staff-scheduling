@@ -21,7 +21,8 @@ public class WebSecurityConfig {
 		http
 				.authorizeRequests()
 				.antMatchers(HttpMethod.GET, "/users/*/schedules").hasAnyRole(Role.ADMIN.name(), Role.USER.name())
-				.antMatchers("/**").hasRole(Role.ADMIN.name())
+				.antMatchers("/users/**").hasRole(Role.ADMIN.name())
+				.antMatchers("/**").permitAll()
 				.and().csrf().disable()
 				.httpBasic();
 		return http.build();
