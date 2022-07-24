@@ -1,6 +1,8 @@
 package com.sstankiewicz.staffscheduling.controller;
 
 import com.sstankiewicz.staffscheduling.controller.model.User;
+import com.sstankiewicz.staffscheduling.controller.model.UserHours;
+import com.sstankiewicz.staffscheduling.service.SchedulesService;
 import com.sstankiewicz.staffscheduling.service.UsersService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,13 +16,15 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalDate;
+import java.util.List;
+
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(UsersController.class)
-
 class UsersControllerTest {
 
     @TestConfiguration
@@ -38,6 +42,9 @@ class UsersControllerTest {
 
     @MockBean
     private UsersService usersService;
+
+    @MockBean
+    private SchedulesService schedulesService;
 
 
     @Test
@@ -79,5 +86,32 @@ class UsersControllerTest {
                 .andExpect(status().isNoContent());
 
         verify(usersService, times(1)).deleteUser(any());
+    }
+
+    @Test
+    void getUsersWorkHours_expect200() throws Exception {
+        when(schedulesService.getUsersHours(LocalDate.of(2020, 1, 1), LocalDate.of(2020, 1, 2)))
+                .thenReturn(List.of(UserHours.builder().userName("user1").workingHours(10).build()));
+
+        mvc.perform(get("/users/working-hours?from=2020-01-01&to=2020-01-02"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().json("""
+                                                  [
+                                                     {
+                                                         "userName": "user1",
+                                                         "workingHours": 10
+                                                     }
+                                                  ]
+                                                  """));
+
+        verify(schedulesService, times(1)).getUsersHours(any(), any());
+    }
+
+
+    @Test
+    void getUsersWorkHours_periodOver1yr_expect400() throws Exception {
+        mvc.perform(get("/users/working-hours?from=2019-01-01&to=2020-01-01"))
+                .andExpect(status().isBadRequest());
     }
 }

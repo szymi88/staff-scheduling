@@ -1,12 +1,15 @@
 package com.sstankiewicz.staffscheduling.service;
 
 import com.sstankiewicz.staffscheduling.controller.model.Schedule;
+import com.sstankiewicz.staffscheduling.controller.model.UserHours;
 import com.sstankiewicz.staffscheduling.repository.ScheduleRepository;
 import com.sstankiewicz.staffscheduling.repository.entity.ScheduleEntity;
 import com.sstankiewicz.staffscheduling.repository.entity.UserEntity;
+import org.hibernate.TransientPropertyValueException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -37,7 +40,15 @@ public class SchedulesService {
         if (schedule.getScheduleId() != null) {
             throw new IllegalArgumentException("Schedule with id");
         }
-        return mapToModel(scheduleRepository.save(mapToEntity(schedule)));
+        try {
+            return mapToModel(scheduleRepository.save(mapToEntity(schedule)));
+        } catch (TransientPropertyValueException e) {
+            if ("user_name".equals(e.getPropertyName())) {
+                throw new UserNotFoundException("User %s doesn't exist".formatted(schedule.getUserName()));
+            } else {
+                throw e;
+            }
+        }
     }
 
     private ScheduleEntity mapToEntity(Schedule schedule) {
@@ -63,6 +74,13 @@ public class SchedulesService {
             throw new IllegalArgumentException("Schedule id is missing");
         }
         return mapToModel(scheduleRepository.save(mapToEntity(schedule)));
+    }
+
+    public List<UserHours> getUsersHours(LocalDate from, LocalDate to) {
+        return scheduleRepository.calculateWorkHours(from, to).stream().map(objects -> UserHours.builder()
+                .userName((String) objects[0])
+                .workingHours(((BigDecimal)objects[1]).intValue())
+                .build()).toList();
     }
 
     public static class UserNotFoundException extends RuntimeException {

@@ -1,12 +1,14 @@
 package com.sstankiewicz.staffscheduling.service;
 
 import com.sstankiewicz.staffscheduling.controller.model.Schedule;
+import com.sstankiewicz.staffscheduling.controller.model.UserHours;
 import com.sstankiewicz.staffscheduling.repository.ScheduleRepository;
 import com.sstankiewicz.staffscheduling.repository.entity.ScheduleEntity;
 import com.sstankiewicz.staffscheduling.repository.entity.UserEntity;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.EmptyResultDataAccessException;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -36,15 +38,14 @@ class SchedulesServiceTest {
     @Test
     void getSchedules_returnCorrectSchedules() {
         var repository = mock(ScheduleRepository.class);
-        when(repository.findAllByUserNameAndWorkDateBetween("user1", LocalDate.of(2000,1,1), LocalDate.of(2000,1,1)))
+        when(repository.findAllByUserNameAndWorkDateBetween("user1", LocalDate.of(2000, 1, 1), LocalDate.of(2000, 1, 1)))
                 .thenReturn(List.of(ScheduleEntity.builder()
                                             .user(UserEntity.builder().name("user1").build())
                                             .scheduleId(1L)
                                             .build()));
 
-        var result = new SchedulesService(repository).getSchedules("user1", LocalDate.of(2000,1,1), LocalDate.of(2000,1,1));
+        var result = new SchedulesService(repository).getSchedules("user1", LocalDate.of(2000, 1, 1), LocalDate.of(2000, 1, 1));
         assertThat(result).containsExactly(Schedule.builder().userName("user1").scheduleId(1L).build());
-
     }
 
     @Test
@@ -101,4 +102,22 @@ class SchedulesServiceTest {
         verify(repository, times(0)).save(any());
     }
 
+    @Test
+    void getUsersHours_returnsHoursSum() {
+        var repository = mock(ScheduleRepository.class);
+        when(repository.calculateWorkHours(LocalDate.of(2020, 1, 1), LocalDate.of(2020, 1, 1)))
+                .thenReturn(List.of(new Object[]{"user1", BigDecimal.valueOf(5)},
+                                    new Object[]{"user2", BigDecimal.valueOf(10)}));
+        var result = new SchedulesService(repository).getUsersHours(LocalDate.of(2020, 1, 1), LocalDate.of(2020, 1, 1));
+
+        assertThat(result).containsExactly(
+                UserHours.builder()
+                        .userName("user1")
+                        .workingHours(5)
+                        .build(),
+                UserHours.builder()
+                        .userName("user2")
+                        .workingHours(10)
+                        .build());
+    }
 }
