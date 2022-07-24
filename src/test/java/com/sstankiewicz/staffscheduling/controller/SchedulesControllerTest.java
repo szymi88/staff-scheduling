@@ -1,7 +1,9 @@
 package com.sstankiewicz.staffscheduling.controller;
 
+import com.sstankiewicz.staffscheduling.config.WebSecurityConfig;
 import com.sstankiewicz.staffscheduling.controller.model.Schedule;
 import com.sstankiewicz.staffscheduling.service.SchedulesService;
+import com.sstankiewicz.staffscheduling.service.UsersService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -18,12 +20,12 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static org.mockito.Mockito.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(SchedulesController.class)
-
 class SchedulesControllerTest {
 
     @TestConfiguration
@@ -42,6 +44,9 @@ class SchedulesControllerTest {
     @MockBean
     private SchedulesService schedulesService;
 
+    @MockBean
+    private UsersService usersService;
+
     @Test
     void getSchedules_returnsResult() throws Exception {
         when(schedulesService.getSchedules("user1", LocalDate.of(2020, 1, 1), LocalDate.of(2020, 1, 2)))
@@ -52,7 +57,7 @@ class SchedulesControllerTest {
                                             .shiftLength(5)
                                             .build()));
 
-        mvc.perform(get("/users/user1/schedules?from=2020-01-01&to=2020-01-02"))
+        mvc.perform(get("/users/user1/schedules?from=2020-01-01&to=2020-01-02").with(user("user1")))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json("""
@@ -72,7 +77,7 @@ class SchedulesControllerTest {
         when(schedulesService.getSchedules("user1", LocalDate.of(2020, 1, 1), LocalDate.of(2020, 1, 2)))
                 .thenReturn(List.of());
 
-        mvc.perform(get("/users/user1/schedules?from=2020-01-01&to=2020-01-02"))
+        mvc.perform(get("/users/user1/schedules?from=2020-01-01&to=2020-01-02").with(user("user1")))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json("[]"));
@@ -83,14 +88,45 @@ class SchedulesControllerTest {
         when(schedulesService.getSchedules("user1", LocalDate.of(2020, 1, 1), LocalDate.of(2020, 1, 2)))
                 .thenThrow(new SchedulesService.UserNotFoundException("User doesn't exist"));
 
-        mvc.perform(get("/users/user1/schedules?from=2020-01-01&to=2020-01-02"))
+        mvc.perform(get("/users/user1/schedules?from=2020-01-01&to=2020-01-02").with(user("user1")))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     void getSchedules_periodOver1yr_return400() throws Exception {
-        mvc.perform(get("/users/user1/schedules?from=2019-01-01&to=2020-01-01"))
+        mvc.perform(get("/users/user1/schedules?from=2019-01-01&to=2020-01-01").with(user("user1")))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void getSchedules_shouldReturnUserScheduleToAdmin() throws Exception {
+        when(schedulesService.getSchedules("user1", LocalDate.of(2020, 1, 1), LocalDate.of(2020, 1, 2)))
+                .thenReturn(List.of(Schedule.builder().build()));
+
+        mvc.perform(get("/users/user1/schedules?from=2020-01-01&to=2020-01-02").with(user("admin").roles(WebSecurityConfig.Role.ADMIN.name())))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void getSchedules_shouldReturnUserScheduleToCoworker() throws Exception {
+        when(schedulesService.getSchedules("user1", LocalDate.of(2020, 1, 1), LocalDate.of(2020, 1, 2)))
+                .thenReturn(List.of(Schedule.builder().build()));
+
+        when(usersService.isCoworker("user2", "user1")).thenReturn(true);
+
+        mvc.perform(get("/users/user1/schedules?from=2020-01-01&to=2020-01-02").with(user("user2").roles(WebSecurityConfig.Role.USER.name())))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void getSchedules_shouldNotReturnUserScheduleToNotCoworker_returns403() throws Exception {
+        when(schedulesService.getSchedules("user1", LocalDate.of(2020, 1, 1), LocalDate.of(2020, 1, 2)))
+                .thenReturn(List.of(Schedule.builder().build()));
+
+        when(usersService.isCoworker("user2", "user1")).thenReturn(false);
+
+        mvc.perform(get("/users/user1/schedules?from=2020-01-01&to=2020-01-02").with(user("user2").roles(WebSecurityConfig.Role.USER.name())))
+                .andExpect(status().isForbidden());
     }
 
     @Test
@@ -257,16 +293,4 @@ class SchedulesControllerTest {
 
         verify(schedulesService, times(1)).deleteSchedule(2L);
     }
-
-    /*
-
-        GET for resource
-
-
-    /*
-    TODO
-    this should be under users
-    * Can order users list by accumulated work hours per arbitrary period (up to 1
-year).
-    * */
 }

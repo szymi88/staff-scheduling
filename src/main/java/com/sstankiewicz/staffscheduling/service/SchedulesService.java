@@ -40,6 +40,7 @@ public class SchedulesService {
         if (schedule.getScheduleId() != null) {
             throw new IllegalArgumentException("Schedule with id");
         }
+
         try {
             return mapToModel(scheduleRepository.save(mapToEntity(schedule)));
         } catch (TransientPropertyValueException e) {

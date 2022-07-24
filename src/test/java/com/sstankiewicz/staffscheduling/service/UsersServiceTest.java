@@ -8,6 +8,12 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 
@@ -17,7 +23,7 @@ class UsersServiceTest {
     void testEnsureAdminUserExists_createsAdminUser() {
         var repository = mock(UserRepository.class);
         when(repository.save(UserEntity.builder().name("admin").password("admin").role(WebSecurityConfig.Role.ADMIN).build()))
-                     .thenAnswer(invocation -> invocation.getArgument(0));
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
         new UsersService(repository).ensureAdminUserExists();
 
@@ -27,10 +33,10 @@ class UsersServiceTest {
     @Test
     void testUpdateUser_updatesUser() {
         var repository = mock(UserRepository.class);
-        when(repository.save(UserEntity.builder().name("user1").password("123").role(WebSecurityConfig.Role.USER).build()))
-                     .thenAnswer(invocation -> invocation.getArgument(0));
+        when(repository.save(UserEntity.builder().name("user1").password("123").coworkers(Set.of()).role(WebSecurityConfig.Role.USER).build()))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
-        new UsersService(repository).updateUser(User.builder().userName("user1").password("123").build());
+        new UsersService(repository).updateUser(User.builder().userName("user1").password("123").coworkers(Set.of()).build());
 
         verify(repository, times(1)).save(any());
     }
@@ -50,5 +56,33 @@ class UsersServiceTest {
         new UsersService(repository).deleteUser("user1");
 
         verify(repository, times(1)).deleteById(any());
+    }
+
+    @Test
+    void isCoworker_coworkerFound_returnTrue() {
+        var repository = mock(UserRepository.class);
+        when(repository.findById("user1")).thenReturn(Optional.of(
+                UserEntity.builder()
+                        .name("user1")
+                        .coworkers(Set.of(
+                                UserEntity.builder().name("user2").build(),
+                                UserEntity.builder().name("user4").build()))
+                        .build()));
+
+        assertTrue(new UsersService(repository).isCoworker("user1", "user2"));
+    }
+
+    @Test
+    void isCoworker_coworkerNotFound_returnFalse() {
+        var repository = mock(UserRepository.class);
+        when(repository.findById("user1")).thenReturn(Optional.of(
+                UserEntity.builder()
+                        .name("user1")
+                        .coworkers(Set.of(
+                                UserEntity.builder().name("user3").build(),
+                                UserEntity.builder().name("user4").build()))
+                        .build()));
+
+        assertFalse(new UsersService(repository).isCoworker("user1", "user2"));
     }
 }

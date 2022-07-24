@@ -1,12 +1,15 @@
 package com.sstankiewicz.staffscheduling.controller;
 
+import com.sstankiewicz.staffscheduling.config.WebSecurityConfig;
 import com.sstankiewicz.staffscheduling.controller.model.Schedule;
 import com.sstankiewicz.staffscheduling.service.SchedulesService;
+import com.sstankiewicz.staffscheduling.service.UsersService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.List;
@@ -16,16 +19,23 @@ import java.util.List;
 public class SchedulesController {
 
     private final SchedulesService schedulesService;
+    private final UsersService usersService;
 
-    public SchedulesController(SchedulesService schedulesService) {
+    public SchedulesController(SchedulesService schedulesService, UsersService usersService) {
         this.schedulesService = schedulesService;
+        this.usersService = usersService;
     }
 
     @GetMapping
-    List<Schedule> getSchedule(@PathVariable String userName, @RequestParam LocalDate from, @RequestParam LocalDate to) {
+    List<Schedule> getSchedule(@PathVariable String userName, @RequestParam LocalDate from, @RequestParam LocalDate to, HttpServletRequest request) {
 
         if (Period.between(from, to).getYears() >= 1) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Period over one year");
+        }
+        if (!request.getUserPrincipal().getName().equals(userName)
+                && !request.isUserInRole(WebSecurityConfig.Role.ADMIN.name())
+                && !usersService.isCoworker(request.getUserPrincipal().getName(), userName)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "User %s is not a coworker".formatted(userName));
         }
 
         try {
