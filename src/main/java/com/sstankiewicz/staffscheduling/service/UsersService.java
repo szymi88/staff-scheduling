@@ -8,10 +8,11 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.EntityNotFoundException;
 import java.util.stream.Collectors;
 
 @Service
-public class UsersService  {
+public class UsersService {
 
     private final UserRepository userRepository;
 
@@ -28,15 +29,18 @@ public class UsersService  {
         if (user == null) {
             throw new IllegalArgumentException("User is null");
         }
-
-        userRepository.save(UserEntity.builder()
-                                    .name(user.getUserName())
-                                    .password(user.getPassword())
-                                    .role(WebSecurityConfig.Role.USER)
-                                    .coworkers(user.getCoworkers().stream()
-                                                       .map(userName -> UserEntity.builder().name(userName).build())
-                                                       .collect(Collectors.toSet()))
-                                    .build());
+        try {
+            userRepository.save(UserEntity.builder()
+                                        .name(user.getUserName())
+                                        .password(user.getPassword())
+                                        .role(WebSecurityConfig.Role.USER)
+                                        .coworkers(user.getCoworkers().stream()
+                                                           .map(userName -> UserEntity.builder().name(userName).build())
+                                                           .collect(Collectors.toSet()))
+                                        .build());
+        } catch (EntityNotFoundException e) {
+            throw new IllegalArgumentException("Non-existing coworker");
+        }
     }
 
     @EventListener(ApplicationReadyEvent.class)

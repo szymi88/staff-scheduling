@@ -19,25 +19,9 @@ repositories {
     mavenCentral()
 }
 
-task unitTest(type: Test) {
-    useJUnitPlatform {
-        excludeTags 'integration'
-    }
-    group = 'verification'
-}
-
-task integrationTest(type: Test) {
-    useJUnitPlatform {
-        includeTags 'integration'
-    }
-    group = 'verification'
-    shouldRunAfter test
-}
-
 dockerCompose {
     useComposeFiles = ['./src/main/docker/docker-compose-mysql.yml']
     isRequiredBy(bootRun)
-    isRequiredBy(integrationTest)
 }
 
 dependencies {
