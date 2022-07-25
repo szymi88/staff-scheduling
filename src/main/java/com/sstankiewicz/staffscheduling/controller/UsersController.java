@@ -4,6 +4,11 @@ import com.sstankiewicz.staffscheduling.controller.model.User;
 import com.sstankiewicz.staffscheduling.controller.model.UserHours;
 import com.sstankiewicz.staffscheduling.service.SchedulesService;
 import com.sstankiewicz.staffscheduling.service.UsersService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -25,22 +30,39 @@ public class UsersController {
         this.schedulesService = schedulesService;
     }
 
+    @Operation(summary = "Create or update user")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "User updated"),
+            @ApiResponse(responseCode = "400", description = "User name in path and body don't match"),
+            @ApiResponse(responseCode = "403", description = "User doesn't have an ADMIN role")
+    })
     @PutMapping(value = "/{userName}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    void updateUser(@PathVariable String userName, @RequestBody User user) {
+    void updateUser(@Parameter(example = "user1") @PathVariable String userName, @RequestBody User user) {
         if (userName == null || !userName.equals(user.getUserName())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Incorrect userName in the body");
         }
         usersService.updateUser(user);
     }
 
+    @Operation(summary = "Delete user")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "User deleted"),
+            @ApiResponse(responseCode = "403", description = "User doesn't have an ADMIN role")
+    })
     @DeleteMapping("/{userName}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    void deleteUser(@PathVariable String userName) {
+    void deleteUser(@Parameter(example = "user1") @PathVariable String userName) {
         usersService.deleteUser(userName);
     }
 
+    @Operation(summary = "Calculates total number of work hours for each user over a given period of time")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Returns user's work time", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
+            @ApiResponse(responseCode = "400", description = "Period over one year"),
+            @ApiResponse(responseCode = "403", description = "User doesn't have an ADMIN role")})
     @GetMapping("/working-hours")
-    List<UserHours> getWorkingHours(@RequestParam LocalDate from, @RequestParam LocalDate to) {
+    List<UserHours> getWorkingHours(@Parameter(description = "date to include workingHours after", example = "2020-01-01") @RequestParam LocalDate from,
+                                    @Parameter(description = "date to include workingHours before", example = "2020-01-15") @RequestParam LocalDate to) {
         if (Period.between(from, to).getYears() >= 1) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Period over one year");
         }

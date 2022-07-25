@@ -3,13 +3,18 @@
 Service provides endpoints to manage employees' work schedules.
 
 ## Rest API documentation
+    
+    http://localhost:8080/v3/api-docs
+    
+REST API can be tested using Swagger:
 
     http://localhost:8080/swagger-ui.html
 
 ## Running tests
+
     ./gradlew test
 
-## Build
+## Build & Run
 
 Prerequisites
 

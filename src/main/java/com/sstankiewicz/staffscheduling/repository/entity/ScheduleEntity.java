@@ -18,6 +18,7 @@ public class ScheduleEntity {
     @Id
     @GeneratedValue
     private Long scheduleId;
+
     @ManyToOne
     @JoinColumn(name = "user_name")
     private UserEntity user;
