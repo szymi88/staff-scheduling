@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +19,7 @@ import java.time.LocalDate;
 import java.time.Period;
 import java.util.List;
 
+@Tag(name = "Users", description = "Allows ADMIN user to manage users")
 @RestController
 @RequestMapping("/users")
 public class UsersController {
@@ -41,7 +43,11 @@ public class UsersController {
         if (userName == null || !userName.equals(user.getUserName())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Incorrect userName in the body");
         }
-        usersService.updateUser(user);
+        try {
+            usersService.updateUser(user);
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
     }
 
     @Operation(summary = "Delete user")

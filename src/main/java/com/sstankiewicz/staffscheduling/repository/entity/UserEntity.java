@@ -1,15 +1,9 @@
 package com.sstankiewicz.staffscheduling.repository.entity;
 
 import com.sstankiewicz.staffscheduling.config.WebSecurityConfig;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.ManyToMany;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.util.Set;
 
 @Data
@@ -26,5 +20,17 @@ public class UserEntity {
     private WebSecurityConfig.Role role;
 
     @ManyToMany
+    @JoinTable(name="coworkers",
+            joinColumns=@JoinColumn(name="name"),
+            inverseJoinColumns=@JoinColumn(name="coworkerName")
+    )
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Set<UserEntity> coworkers;
+
+    @ManyToMany(mappedBy="coworkers", cascade = CascadeType.REMOVE)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Set<UserEntity> coworkerOf;
+
 }

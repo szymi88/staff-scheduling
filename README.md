@@ -27,7 +27,7 @@ Build project with Gradle
 
 Build docker image
     
-    docker build -f src/main/docker/Dockerfile .
+    docker build -t staff-scheduling -f src/main/docker/Dockerfile .
 
 Run service & database with docker compose
 

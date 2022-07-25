@@ -6,10 +6,10 @@ import com.sstankiewicz.staffscheduling.repository.UserRepository;
 import com.sstankiewicz.staffscheduling.repository.entity.UserEntity;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.orm.jpa.JpaObjectRetrievalFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.EntityNotFoundException;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,6 +27,20 @@ public class UsersService {
     @Transactional
     public void deleteUser(String user) {
         schedulesService.deleteUsersSchedules(user);
+/*        var updatedCoworkers = userRepository.findById(user)
+                .stream()
+                .map(UserEntity::getCoworkers)
+                .flatMap(Set::stream)
+                .peek(userEntity -> {
+                    userEntity.getCoworkers().removeIf(coworker -> coworker.getName().equals(user));
+                    userEntity.getCoworkerOf().removeIf(coworker -> coworker.getName().equals(user));
+                })
+                .toList();
+        userRepository.saveAll(updatedCoworkers);*/
+     ////   var byId = userRepository.findById(user).get();
+ //       byId.setCoworkers(new HashSet<>());
+     //   byId.setCoworkerOf(new HashSet<>());
+ //       userRepository.save(byId);
         userRepository.deleteById(user);
     }
 
@@ -44,7 +58,7 @@ public class UsersService {
                                                            .map(userName -> UserEntity.builder().name(userName).build())
                                                            .collect(Collectors.toSet()))
                                         .build());
-        } catch (EntityNotFoundException e) {
+        } catch (JpaObjectRetrievalFailureException e) {
             throw new IllegalArgumentException("Non-existing coworker");
         }
     }
