@@ -276,21 +276,21 @@ class SchedulesControllerTest {
 
     @Test
     void deleteSchedules_deleteExisting_returns204() throws Exception {
-        when(schedulesService.deleteSchedule(2L)).thenReturn(true);
+        when(schedulesService.deleteSchedule("user1", 2L)).thenReturn(true);
 
         mvc.perform(delete("/users/user1/schedules/2"))
                 .andExpect(status().isNoContent());
 
-        verify(schedulesService, times(1)).deleteSchedule(2L);
+        verify(schedulesService, times(1)).deleteSchedule(any(), any());
     }
 
     @Test
     void deleteSchedules_notExisting_return404() throws Exception {
-        when(schedulesService.deleteSchedule(2L)).thenReturn(false);
+        when(schedulesService.deleteSchedule("user1", 2L)).thenReturn(false);
 
         mvc.perform(delete("/users/user1/schedules/2"))
                 .andExpect(status().isNotFound());
 
-        verify(schedulesService, times(1)).deleteSchedule(2L);
+        verify(schedulesService, times(1)).deleteSchedule(any(), any());
     }
 }

@@ -5,10 +5,8 @@ import com.sstankiewicz.staffscheduling.controller.model.User;
 import com.sstankiewicz.staffscheduling.repository.UserRepository;
 import com.sstankiewicz.staffscheduling.repository.entity.UserEntity;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -25,7 +23,7 @@ class UsersServiceTest {
         when(repository.save(UserEntity.builder().name("admin").password("admin").role(WebSecurityConfig.Role.ADMIN).build()))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        new UsersService(repository).ensureAdminUserExists();
+        new UsersService(repository, mock(SchedulesService.class)).ensureAdminUserExists();
 
         verify(repository, times(1)).save(any());
     }
@@ -36,14 +34,14 @@ class UsersServiceTest {
         when(repository.save(UserEntity.builder().name("user1").password("123").coworkers(Set.of()).role(WebSecurityConfig.Role.USER).build()))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        new UsersService(repository).updateUser(User.builder().userName("user1").password("123").coworkers(Set.of()).build());
+        new UsersService(repository, mock(SchedulesService.class)).updateUser(User.builder().userName("user1").password("123").coworkers(Set.of()).build());
 
         verify(repository, times(1)).save(any());
     }
 
     @Test
     void testUpdateUser_throwsIllegalArgumentExceptionOnOnNullUser() {
-        UsersService usersService = new UsersService(mock(UserRepository.class));
+        UsersService usersService = new UsersService(mock(UserRepository.class), mock(SchedulesService.class));
 
         Assertions.assertThrows(IllegalArgumentException.class, () -> usersService.updateUser(null));
     }
@@ -53,7 +51,7 @@ class UsersServiceTest {
         var repository = mock(UserRepository.class);
         doNothing().when(repository).deleteById("user1");
 
-        new UsersService(repository).deleteUser("user1");
+        new UsersService(repository, mock(SchedulesService.class)).deleteUser("user1");
 
         verify(repository, times(1)).deleteById(any());
     }
@@ -69,7 +67,7 @@ class UsersServiceTest {
                                 UserEntity.builder().name("user4").build()))
                         .build()));
 
-        assertTrue(new UsersService(repository).isCoworker("user1", "user2"));
+        assertTrue(new UsersService(repository, mock(SchedulesService.class)).isCoworker("user1", "user2"));
     }
 
     @Test
@@ -83,6 +81,6 @@ class UsersServiceTest {
                                 UserEntity.builder().name("user4").build()))
                         .build()));
 
-        assertFalse(new UsersService(repository).isCoworker("user1", "user2"));
+        assertFalse(new UsersService(repository, mock(SchedulesService.class)).isCoworker("user1", "user2"));
     }
 }

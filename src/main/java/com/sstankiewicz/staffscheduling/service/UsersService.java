@@ -7,6 +7,7 @@ import com.sstankiewicz.staffscheduling.repository.entity.UserEntity;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityNotFoundException;
 import java.util.stream.Collectors;
@@ -16,11 +17,16 @@ public class UsersService {
 
     private final UserRepository userRepository;
 
-    public UsersService(UserRepository userRepository) {
+    private final SchedulesService schedulesService;
+
+    public UsersService(UserRepository userRepository, SchedulesService schedulesService) {
         this.userRepository = userRepository;
+        this.schedulesService = schedulesService;
     }
 
+    @Transactional
     public void deleteUser(String user) {
+        schedulesService.deleteUsersSchedules(user);
         userRepository.deleteById(user);
     }
 

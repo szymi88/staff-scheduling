@@ -11,6 +11,7 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
@@ -21,17 +22,31 @@ class SchedulesServiceTest {
     @Test
     void deleteSchedule_scheduleExists_returnTrue() {
         var repository = mock(ScheduleRepository.class);
-        doNothing().when(repository).deleteById(1L);
-        assertTrue(new SchedulesService(repository).deleteSchedule(1L));
+        when(repository.findById(1L)).thenReturn(Optional.of(ScheduleEntity.builder().user(UserEntity.builder().name("user1").build()).build()));
+                                                 doNothing().when(repository).deleteById(1L);
+        assertTrue(new SchedulesService(repository).deleteSchedule("user1", 1L));
 
         verify(repository, times(1)).deleteById(any());
     }
 
     @Test
+    void deleteSchedule_scheduleAndUserMismatch_throwException() {
+        var repository = mock(ScheduleRepository.class);
+        when(repository.findById(1L)).thenReturn(Optional.of(ScheduleEntity.builder().user(UserEntity.builder().name("user2").build()).build()));
+        doNothing().when(repository).deleteById(1L);
+        var service = new SchedulesService(repository);
+        assertThrows(IllegalArgumentException.class, () -> service.deleteSchedule("user1", 1L));
+
+        verify(repository, times(0)).deleteById(any());
+    }
+
+    @Test
     void deleteSchedule_scheduleNotExists_returnFalse() {
         var repository = mock(ScheduleRepository.class);
+        when(repository.findById(1L)).thenReturn(Optional.of(ScheduleEntity.builder().user(UserEntity.builder().name("user1").build()).build()));
+        doNothing().when(repository).deleteById(1L);
         doThrow(EmptyResultDataAccessException.class).when(repository).deleteById(1L);
-        assertFalse(new SchedulesService(repository).deleteSchedule(1L));
+        assertFalse(new SchedulesService(repository).deleteSchedule("user1", 1L));
         verify(repository, times(1)).deleteById(any());
     }
 

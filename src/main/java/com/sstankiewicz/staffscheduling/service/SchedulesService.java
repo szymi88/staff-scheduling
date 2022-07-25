@@ -7,7 +7,9 @@ import com.sstankiewicz.staffscheduling.repository.entity.ScheduleEntity;
 import com.sstankiewicz.staffscheduling.repository.entity.UserEntity;
 import org.hibernate.TransientPropertyValueException;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -22,12 +24,22 @@ public class SchedulesService {
         this.scheduleRepository = scheduleRepository;
     }
 
-    public boolean deleteSchedule(Long scheduleId) {
+    @Transactional
+    public boolean deleteSchedule(String userId, Long scheduleId) {
+        boolean scheduleBelongsToUser = scheduleRepository.findById(scheduleId)
+                .map(ScheduleEntity::getUser)
+                .map(UserEntity::getName)
+                .filter(userId::equals)
+                .isPresent();
+
+        if (!scheduleBelongsToUser) {
+            throw new IllegalArgumentException("Schedule id %d doesn't belong to user %s".formatted(scheduleId, userId));
+        }
+
         try {
             scheduleRepository.deleteById(scheduleId);
         } catch (EmptyResultDataAccessException e) {
             return false;
-
         }
         return true;
     }
@@ -43,12 +55,11 @@ public class SchedulesService {
 
         try {
             return mapToModel(scheduleRepository.save(mapToEntity(schedule)));
-        } catch (TransientPropertyValueException e) {
-            if ("user_name".equals(e.getPropertyName())) {
+        } catch (InvalidDataAccessApiUsageException e) {
+            if (e.getRootCause() != null && "user".equals(((TransientPropertyValueException) e.getRootCause()).getPropertyName())) {
                 throw new UserNotFoundException("User %s doesn't exist".formatted(schedule.getUserName()));
-            } else {
-                throw e;
             }
+            throw e;
         }
     }
 
@@ -80,8 +91,12 @@ public class SchedulesService {
     public List<UserHours> getUsersHours(LocalDate from, LocalDate to) {
         return scheduleRepository.calculateWorkHours(from, to).stream().map(objects -> UserHours.builder()
                 .userName((String) objects[0])
-                .workingHours(((BigDecimal)objects[1]).intValue())
+                .workingHours(((BigDecimal) objects[1]).intValue())
                 .build()).toList();
+    }
+
+    public void deleteUsersSchedules(String user) {
+        scheduleRepository.deleteAllByUserName(user);
     }
 
     public static class UserNotFoundException extends RuntimeException {
