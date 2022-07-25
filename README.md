@@ -32,3 +32,10 @@ Build docker image
 Run service & database with docker compose
 
     docker-compose -f src/main/docker/docker-compose.yml up -d
+
+## Credentials
+
+Admin user is preconfigured on app startup to
+
+    user: admin
+    password: admin
