@@ -27,20 +27,6 @@ public class UsersService {
     @Transactional
     public void deleteUser(String user) {
         schedulesService.deleteUsersSchedules(user);
-/*        var updatedCoworkers = userRepository.findById(user)
-                .stream()
-                .map(UserEntity::getCoworkers)
-                .flatMap(Set::stream)
-                .peek(userEntity -> {
-                    userEntity.getCoworkers().removeIf(coworker -> coworker.getName().equals(user));
-                    userEntity.getCoworkerOf().removeIf(coworker -> coworker.getName().equals(user));
-                })
-                .toList();
-        userRepository.saveAll(updatedCoworkers);*/
-     ////   var byId = userRepository.findById(user).get();
- //       byId.setCoworkers(new HashSet<>());
-     //   byId.setCoworkerOf(new HashSet<>());
- //       userRepository.save(byId);
         userRepository.deleteById(user);
     }
 
